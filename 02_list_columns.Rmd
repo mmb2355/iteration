@@ -1,0 +1,83 @@
+---
+title: "List Columns"
+output: github_document
+date: "2026-11-05"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+library(rvest)
+library(p8105.datasets)
+
+source("source/mean_and_sd.R")
+source("source/nsduh_process.R")
+
+set.seed(127)
+```
+
+## lists
+
+```{r}
+l = list(
+  vec_numeric = 5:8,
+  mat         = matrix(1:8, 2, 4),
+  vec_logical = c(TRUE, FALSE),
+  summary     = summary(rnorm(1000)))
+l
+```
+
+## `for` loops
+
+```{r}
+list_norm = list(
+  a = rnorm(20, 3, 4),
+  b = rnorm(20, -14, 20),
+  c = rnorm(20, 1000, 1000),
+  d = rnorm(20, 0, 1)
+)
+
+list_norm
+```
+
+can i get mean and sd for each sample
+
+```{r}
+mean_and_sd(list_norm[[1]])
+mean_and_sd(list_norm[[2]])
+mean_and_sd(list_norm[[3]])
+mean_and_sd(list_norm[[4]])
+```
+
+can i do better?...yes
+
+```{r}
+output = vector("list", length = 4)
+
+for (i in 1:4){
+  output[[i]] = mean_and_sd(list_norm[[i]])
+}
+
+output
+```
+
+## `map` instead
+
+this is better!
+
+```{r}
+output = map(list_norm, mean_and_sd)
+
+output = map(list_norm, IQR)
+
+output = map(list_norm, median)
+```
+
+what about map variants
+
+```{r}
+output = map_df(list_norm, mean_and_sd)
+output = map_dbl(list_norm, median)
+```
+

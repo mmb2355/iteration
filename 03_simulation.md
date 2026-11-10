@@ -20,6 +20,7 @@ library(tidyverse)
 ``` r
 source("source/sim_mean_sd.R")
 source("source/sim_slr.R")
+source("source/birthday_repeated.R")
 
 set.seed(127)
 ```
@@ -209,3 +210,53 @@ slr_results_df |>
 ```
 
 ![](03_simulation_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+
+## birthday problem
+
+``` r
+birthdays = sample(1:365, size = 5, replace = TRUE)
+
+repeated_birthdays = length(unique(birthdays)) < 5
+
+repeated_birthdays
+```
+
+    ## [1] FALSE
+
+### turn into function
+
+(i did)…run it a bunch
+
+``` r
+birthday_repeated(147)
+```
+
+    ## [1] TRUE
+
+run it a bunch but good
+
+``` r
+birthday_results_df = 
+  expand_grid(
+    number_of_people = 5:50,
+    iter = 1:1000
+  ) |> 
+  mutate(
+    repeated = map_lgl(number_of_people, birthday_repeated)
+  )
+```
+
+- map_lgl: turns numbers into TRUE/FALSE (logical vector)
+
+### look at results
+
+``` r
+birthday_results_df |> 
+  group_by(number_of_people) |> 
+  summarize(prob_of_repeat = mean(repeated)) |> 
+  ggplot(aes(x = number_of_people, y = prob_of_repeat)) +
+  geom_point() + 
+  geom_line()
+```
+
+![](03_simulation_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->

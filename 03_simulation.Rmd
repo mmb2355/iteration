@@ -1,0 +1,105 @@
+---
+title: "Simulation"
+output: github_document
+date: "2026-11-10"
+editor_options: 
+  chunk_output_type: console
+---
+```{r}
+library(tidyverse)
+
+source("source/sim_mean_sd.R")
+
+set.seed(127)
+```
+
+## mean and SD
+
+### let's do this but keep track of results
+
+```{r}
+output = vector("list", length = 1000)
+
+for (i in 1:1000){
+   output[[i]] = sim_mean_sd(30)
+}
+```
+
+### inspect results
+
+```{r}
+output |> 
+  bind_rows() |> 
+  summarize(
+    emp_m = mean(mean),
+    emp_se = sd(mean)
+  )
+```
+
+```{r}
+output |> 
+  bind_rows() |> 
+  ggplot(aes(x = mean)) +
+  geom_density()
+```
+
+### let's do this using tibbles and map instead
+
+```{r}
+sim_results_df =
+  tibble(
+    samp_size = rep(30, 1000)
+  ) |> 
+  mutate(
+    est_df = map(samp_size, sim_mean_sd)
+  ) |> 
+  unnest(est_df)
+```
+
+### look at results
+
+```{r}
+sim_results_df |> 
+  ggplot(aes(x = mean)) +
+  geom_density()
+```
+
+## change `n`
+
+```{r}
+sim_results_df =
+  expand_grid(
+    samp_size = c(30, 60, 120, 240),
+    iter = 1:1000
+  ) |> 
+  mutate(
+    est_df = map(samp_size, sim_mean_sd)
+  ) |> 
+  unnest(est_df)
+```
+
+* expand_grid: gives combination of sample size and iteration up to the highest number (ex. 30, 1; 30, 2; 30, 3;...30, 1000)
+
+```{r}
+sim_results_df |> 
+  mutate(
+    samp_size = str_c("n = ", samp_size),
+    samp_size = fct_inorder(samp_size)
+  ) |> 
+  ggplot(aes(x = samp_size, y = mean)) +
+  geom_violin()
+```
+
+```{r}
+sim_results_df |> 
+  mutate(
+    samp_size = str_c("n = ", samp_size),
+    samp_size = fct_inorder(samp_size)
+  ) |> 
+  group_by(samp_size) |> 
+  summarize(
+    emp_m = mean(mean),
+    emp_se = sd(mean)
+  )
+```
+
